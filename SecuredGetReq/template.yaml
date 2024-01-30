@@ -1,0 +1,8 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM Template to deploy a lambda that will
+
+Parameters:
+  DeploymentEnv:
+    Type: String
+    Description: Please Enter Name for API gateway stage environment
