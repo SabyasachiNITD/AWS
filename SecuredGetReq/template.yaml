@@ -6,3 +6,8 @@ Parameters:
   DeploymentEnv:
     Type: String
     Description: Please Enter Name for API gateway stage environment
+    AllowedValues:
+      - dev
+      - qa
+      - preprod
+      - prod
