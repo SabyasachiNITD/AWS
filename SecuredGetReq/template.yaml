@@ -11,3 +11,71 @@ Parameters:
       - qa
       - preprod
       - prod
+
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref DeploymentEnv
+      Auth:
+        ApiKeyRequired: true
+
+  AdderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: myLambda
+      Handler: get.lambda_handler
+      Runtime: python3.8
+      Events:
+        MyApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /add
+            Method: GET
+
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - MyApiStage
+    Properties:
+      ApiStages:
+        - ApiId: !Ref MyApi
+          Stage: !Ref DeploymentEnv
+      Description: Usage Plan for get API Gateway
+      Quota:
+        Limit: 500
+        Period: MONTH
+      UsagePlanName: Test-User-Plan1
+
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn:
+      - UsagePlan
+    Properties:
+      Description: API Key for secured get API
+      Enabled: true
+      StageKeys:
+        - RestApiId: !Ref MyApi
+          StageName: !Ref DeploymentEnv
+
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref ApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlan
+
+
+Outputs:
+  Region:
+    Description: "Name of the region"
+    Value: !Ref Aws::Region
+
+  ApiId:
+    Description: "Get Api Id"
+    Value: !Ref MyApi
+
+  ApiUrl:
+    Description: "Url to access the API endpoint"
+    Value: !Sub 'https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/${DeploymentEnv}/add'
