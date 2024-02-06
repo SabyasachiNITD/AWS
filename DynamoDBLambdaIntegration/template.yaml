@@ -46,3 +46,9 @@ Resources:
         - AttributeName: userId
           KeyType: HASH
 
+Outputs:
+  RestApi:
+    Description: API Gateway endpoint URL to access trigger the Lambda on stage LIVE
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS:Region}.amazonaws.com/LIVE/db
+
+
