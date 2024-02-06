@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM Template to deploy a DynamoDB table and Lambda that will be triggered
+  on DynamoDb operation
+Resources:
+  LambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: LambdaFunction
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: DynamoDBTable
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:DeleteItem
+          - dynamodb:PutItem
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:BatchGetItem
+          - dynamodb:DescribeTable
+          - dynamodb:ConditionCheckItem
+          Resources:
+            Fn::GetAtt:
+            - DynamoDBTable
+            - Arn
+      Events:
+        MyApiLambda:
+          Type: Api
+          Properties:
+            Path: /db
+            Method: ANY
+    Metadata:
+      SamResourceId: LambdaFunction
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      TableName: table-dynamodb-crud
+      AttributeDefinitions:
+      - AttributeName: userId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: userId
+        KeyType: HASH
+Outputs:
+  RestApi:
+    Description: API Gateway endpoint URL to access trigger the Lambda on stage LIVE
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS:Region}.amazonaws.com/LIVE/db
